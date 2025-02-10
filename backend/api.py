@@ -1,14 +1,23 @@
 import httpx
 from fastapi import HTTPException
 
+async def validate_api_key(apiKey: str):
+    url = "https://api.wanikani.com/v2/user"
+    headers = {"Authorization": f"Bearer {apiKey}"}
+
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers)
+    
+    if response.status_code == 200:
+        return True
+    return False
+
 async def fetch_wanikani_data(apiKey: str, endpoint: str, params: dict = None):
     # Base url for Wanikani API
     baseUrl = "https://api.wanikani.com/v2"
 
     # Add API key to header
-    headers = {
-        "Authorization": f"Bearer {apiKey}"
-    }
+    headers = {"Authorization": f"Bearer {apiKey}"}
 
     # If no parameters, use an empty dict
     if params is None:
