@@ -1,35 +1,74 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState } from "react";
+import axios from "axios";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [apiKey, setApiKey] = useState("");
+  const [isValidKey, setIsValidKey] = useState(false);
+  const [error, setError] = useState("");
+  const [vocabCharacters, setVocabCharacters] = useState([]);
+
+  const validateApiKey = async () => {
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/validate_key", { api_key: apiKey });
+
+      if (response.data.valid) {
+        setIsValidKey(true);
+        setError("");
+        fetchVocabulary();
+      } else {
+        setError("Invalid API key. Please try again.");
+      }
+    } catch (err) {
+      setError("Error validating API key.");
+    }
+  };
+
+  const fetchVocabulary = async () => {
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/fetch_vocabulary", { api_key: apiKey });
+      const vocabList = response.data;
+      
+      if (!Array.isArray(vocabList)) {
+        setError("Invalid response from API.");
+        return;
+      }
+
+      const characters = vocabList.map(entry => entry.data.characters);
+      setVocabCharacters(characters);
+      setError(""); // Clear any previous error
+    } catch (err) {
+      setError("Error fetching vocabulary.");
+    }
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div>
+      {!isValidKey ? (
+        <div>
+          <h2>Enter your WaniKani API Key</h2>
+          <input
+            type="text"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            placeholder="Enter API key"
+          />
+          <button onClick={validateApiKey}>Validate</button>
+          {error && <p style={{ color: "red" }}>{error}</p>}
+        </div>
+      ) : (
+        <div>
+          <h1>WaniKani Reader</h1>
+          {error && <p style={{ color: "red" }}>{error}</p>}
+          <h3>Vocabulary Characters:</h3>
+          <ul>
+            {vocabCharacters.map((char, index) => (
+              <li key={index}>{char}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;
