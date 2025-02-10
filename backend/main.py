@@ -14,8 +14,6 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 
-# curl -X 'POST'   'http://127.0.0.1:8000/validate_key'   -H 'Content-Type: application/json'   -d '{"api_key": "<YOUR-API-KEY>"}'
-
 # Define a request body to accept the API key
 class APIKeyRequest(BaseModel):
     api_key: str
@@ -25,14 +23,12 @@ async def validate_key(request: APIKeyRequest):
     isValid = await validate_api_key(request.api_key)
     return {"valid": isValid}
 
-
-# curl -X 'POST'   'http://127.0.0.1:8000/fetch_vocabulary'   -H 'Content-Type: application/json'   -d '{"api_key": "<YOUR-API-KEY>"}'
-
+# Endpoint to fetch filtered vocabulary for passed assignments
 @app.post("/fetch_vocabulary")
 async def fetch_vocabulary(request: APIKeyRequest):
-    # Call the utility function to fetch data from WaniKani API
     try:
-        data = await fetch_wanikani_data(request.api_key, "subjects", {"types": "vocabulary"})
-        return data  # Return the fetched vocabulary data
+        vocab_list = await fetch_vocabulary_for_passed_assignments(request.api_key)
+        return vocab_list
+    
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=f"Could not fetch vocabulary data: {e.detail}")

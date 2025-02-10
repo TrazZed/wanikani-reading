@@ -50,3 +50,22 @@ async def fetch_wanikani_data(apiKey: str, endpoint: str, params: dict = None):
             allData.extend(data['data'])
 
         return allData
+    
+# Function to fetch assignments that have passed_at
+async def fetch_assignments(apiKey: str):
+    assignments = await fetch_wanikani_data(apiKey, "assignments")
+    
+    # Filter out assignments where passed_at is not null
+    passed_assignments = [assignment['data']['subject_id'] for assignment in assignments if assignment['data'].get('passed_at')]
+
+    return passed_assignments
+
+# Function to fetch vocabulary related to filtered assignments
+async def fetch_vocabulary_for_passed_assignments(apiKey: str):
+    vocabData = await fetch_wanikani_data(apiKey, "subjects", {"types": "vocabulary"})
+    passedVocab = await fetch_assignments(apiKey)
+
+    # Filter and return only the vocabulary objects
+    vocabList = [vocab for vocab in vocabData if vocab['id'] in passedVocab]
+    print(len(vocabList))
+    return vocabList
