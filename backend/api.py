@@ -1,6 +1,15 @@
 import httpx
 from fastapi import HTTPException
 
+"""
+validate_api_key()
+---------------------
+Validates the api key given in the parameters to be valid
+
+str apiKey: the api key to check validity of
+
+Returns: True if valid, False else
+"""
 async def validate_api_key(apiKey: str):
     url = "https://api.wanikani.com/v2/user"
     headers = {"Authorization": f"Bearer {apiKey}"}
@@ -12,6 +21,17 @@ async def validate_api_key(apiKey: str):
         return True
     return False
 
+"""
+fetch_wanikani_data()
+-----------------------
+Retrieves all data from wanikani from a given endpoint with parameters
+
+str apiKey: the api key to access the data from
+str endpoint: the endpoint to reach
+dict params: the parameters to supply the request with
+
+Returns: the data from the request an an array
+"""
 async def fetch_wanikani_data(apiKey: str, endpoint: str, params: dict = None):
     # Base url for Wanikani API
     baseUrl = "https://api.wanikani.com/v2"
@@ -50,8 +70,17 @@ async def fetch_wanikani_data(apiKey: str, endpoint: str, params: dict = None):
             allData.extend(data['data'])
 
         return allData
-    
-# Function to fetch assignments that have passed_at
+
+
+"""
+fetch_assignments()
+---------------------
+Fetches the data from the assignments endpoint from the Wanikani API, and filters all vocabulary the user has passed
+
+str apiKey: the api key to access the data from
+
+Returns: An array of all passed vocabularies id's
+"""
 async def fetch_assignments(apiKey: str):
     assignments = await fetch_wanikani_data(apiKey, "assignments")
     
@@ -60,7 +89,15 @@ async def fetch_assignments(apiKey: str):
 
     return passed_assignments
 
-# Function to fetch vocabulary related to filtered assignments
+"""
+fetch_vocabulary_for_passed_assignments()
+--------------------------------------------
+Filters through all of the vocab available on Wanikani and returns the vocab that the user has passed
+
+str apiKey: the api key to access the data from
+
+Returns: An array of vocab data that the user has passed
+"""
 async def fetch_vocabulary_for_passed_assignments(apiKey: str):
     vocabData = await fetch_wanikani_data(apiKey, "subjects", {"types": "vocabulary"})
     passedVocab = await fetch_assignments(apiKey)

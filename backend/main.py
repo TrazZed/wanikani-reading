@@ -18,12 +18,30 @@ app.add_middleware(
 class APIKeyRequest(BaseModel):
     api_key: str
 
+"""
+validate_key()
+----------------
+Validates the given api key
+
+APIKeyRequest request: The data for the request requiring the field api_key
+
+Returns: {"valid": True/False} if the api key is valid or not respectively
+"""
 @app.post("/validate_key")
 async def validate_key(request: APIKeyRequest):
     isValid = await validate_api_key(request.api_key)
     return {"valid": isValid}
 
-# Endpoint to fetch filtered vocabulary for passed assignments
+
+"""
+fetch_vocabulary()
+-------------------
+Retrieves the vocabulary that the user has passed
+
+APIKeyRequest request: the data for the request requiring the field api_key
+
+Returns: An array of vocabulary data that the user has passed
+"""
 @app.post("/fetch_vocabulary")
 async def fetch_vocabulary(request: APIKeyRequest):
     try:
